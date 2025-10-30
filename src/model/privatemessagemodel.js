@@ -9,4 +9,5 @@ const privateMessageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("PrivateMessage", privateMessageSchema);
+const PriveteMessage = mongoose.model("PrivateMessage", privateMessageSchema);
+export default PriveteMessage;

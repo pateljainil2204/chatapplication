@@ -1,9 +1,12 @@
 import express from "express";
+import userRoutes from "./userroute.js";
+import messageRoutes from "./channelroute.js";
+import privateRoutes from "./privatemessageroute.js";
+
 const router = express.Router();
 
-// example test route
-router.get("/test", (req, res) => {
-  res.json({ message: "Router working fine" });
-});
+router.use("/users", userRoutes);
+router.use("/channels", messageRoutes);
+router.use("/private", privateRoutes);
 
 export default router;

@@ -26,7 +26,7 @@ function initializesocket(server) {
       // pass parsed message to each handler
       handleusersocket(ws, users, parsed);
       handlejoinchannel(ws, users, parsed);
-      handlegroupmessage(ws, wss, users, messages, parsed);
+      handlegroupmessage(ws, wss, users, messages, parsed); 
       handleprivatemessage(ws, wss, users, parsed);
     });
 

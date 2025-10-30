@@ -1,4 +1,6 @@
-function handlegroupmessage(ws, wss, users, messages, parsed) {
+import Message from "../model/channelmodel.js";
+
+async function handlegroupmessage(ws, wss, users, messages, parsed) {
   if (parsed.event !== "sendMessage") return;
 
   const user = users.get(ws);
@@ -20,6 +22,17 @@ function handlegroupmessage(ws, wss, users, messages, parsed) {
 
   const messageData = { user: user.username, message: messageText, channel: user.channel };
   messages.push(messageData);
+
+  try {
+    const newMessage = new Message({
+      sender: user.id,
+      channel: user.channel,
+      message: messageText,
+    });
+    await newMessage.save();
+  } catch (err) {
+    console.error("DB Save Error:", err);
+  }
 
   wss.clients.forEach((client) => {
     const clientUser = users.get(client);

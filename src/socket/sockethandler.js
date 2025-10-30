@@ -23,9 +23,9 @@ function initializesocket(server) {
 
       console.log("Received:", parsed);
 
-      // handle events
+      // pass parsed message to each handler
       handleusersocket(ws, users, parsed);
-      handlejoinchannel(ws, wss, users, parsed);
+      handlejoinchannel(ws, users, parsed);
       handlegroupmessage(ws, wss, users, messages, parsed);
       handleprivatemessage(ws, wss, users, parsed);
     });

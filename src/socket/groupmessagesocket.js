@@ -8,10 +8,7 @@ function handlegroupmessage(ws, wss, users, messages, parsed) {
   }
 
   if (!user.channel) {
-    ws.send(JSON.stringify({
-      event: "error",
-      data: "Join a channel before sending messages",
-    }));
+    ws.send(JSON.stringify({ event: "error", data: "Join a channel before sending messages" }));
     return;
   }
 

@@ -1,9 +1,9 @@
 import PrivateMessage from "../model/privatemessagemodel.js";
 
-async function handleprivatemessage(ws, wss, users, parsed) {
+async function handleprivatemessage(ws, users, parsed) {
   if (parsed.event !== "sendPrivateMessage") return;
 
-  const fromUser = users.get(ws);
+  const fromUser = [...users.values()].find(u => u.socket === ws);
   const toUsername = parsed.data?.to?.trim();
   const message = parsed.data?.message?.trim();
 
@@ -28,27 +28,23 @@ async function handleprivatemessage(ws, wss, users, parsed) {
     console.error("Private message save error:", err);
   }
 
-  // Send real-time message if user online
-  let targetFound = false;
-  for (const [client, info] of users.entries()) {
-    if (info.username === toUsername && client.readyState === ws.OPEN) {
-      targetFound = true;
-      client.send(
-        JSON.stringify({
-          event: "privateMessage",
-          data: { from: fromUser.username, message },
-        })
-      );
-      ws.send(
-        JSON.stringify({
-          event: "ack",
-          data: `Private message sent to ${toUsername}`,
-        })
-      );
-    }
-  }
+  const recipient = users.get(toUsername);
+  if (recipient?.socket && recipient.socket.readyState === ws.OPEN) {
+    recipient.socket.send(
+      JSON.stringify({
+        event: "privateMessage",
+        data: { from: fromUser.username, message },
+      })
+    );
 
-  if (!targetFound) {
+    // Acknowledge sender
+    ws.send(
+      JSON.stringify({
+        event: "ack",
+        data: `Private message sent to ${toUsername}`,
+      })
+    );
+  } else {
     ws.send(
       JSON.stringify({
         event: "error",

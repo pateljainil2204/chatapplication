@@ -22,11 +22,10 @@ const main = async () => {
       res.send("Server is running with WebSocket support");
     });
 
-    // initialize WebSocket after server is ready
-    initializesocket(server);
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+       initializesocket(server);
     });
   } catch (error) {
     console.log("Error starting server:", error.message);

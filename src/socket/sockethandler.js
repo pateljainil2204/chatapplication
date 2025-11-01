@@ -3,15 +3,35 @@ import handleprivatemessage from "./privatemessagesocket.js";
 import handlejoinchannel from "./joinchannelsocket.js";
 import handlegroupmessage from "./groupmessagesocket.js";
 import handleusersocket from "./registeruser.js";
+import User from "../model/usermodel.js";
 
 function initializesocket(server) {
   const wss = new WebSocketServer({ server });
   const users = new Map();
   let messages = [];
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", async (ws, req ) => {
     console.log("Client connected");
     ws.send(JSON.stringify({ event: "chatHistory", data: messages }));
+
+    // user restore using user id 
+     const url = new URL(req.url, `http://${req.headers.host}`);
+    const userId = url.searchParams.get("userId");
+
+    if (userId) {
+      try {
+        const user = await User.findById(userId);
+        if (user) {
+          users.set(ws, { id: user._id, username: user.username, channel: null });
+          console.log(`Auto-restored user: ${user.username}`);
+          ws.send(JSON.stringify({ event: "restoreSuccess", data: { userId, username: user.username } }));
+        } else {
+          ws.send(JSON.stringify({ event: "error", data: "User not found" }));
+        }
+      } catch (err) {
+        console.error("Restore failed:", err);
+      }
+    };
 
     ws.on("message", (msg) => {
       let parsed;

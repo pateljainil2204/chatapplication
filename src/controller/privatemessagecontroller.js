@@ -18,13 +18,20 @@ const getPrivateChat = async (req, res) => {
         { sender: u2._id, receiverUsername: user1 },
       ],
     })
-      .populate("sender", "username")
+      .select("message receiverUsername sender createdAt") 
+      .populate("sender", "username -_id") 
       .sort({ createdAt: 1 });
+
+    const formattedMessages = messages.map((msg) => ({
+      sender: msg.sender.username,
+      receiver: msg.receiverUsername,
+      message: msg.message,
+    }));
 
     res.status(200).json({
       success: true,
-      count: messages.length,
-      messages,
+      count: formattedMessages.length,
+      messages: formattedMessages,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

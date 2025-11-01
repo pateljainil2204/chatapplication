@@ -16,10 +16,10 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Get all users (only usernames)
+// Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("username -_id"); // only include username, exclude _id
+    const users = await User.find().select("username -_id"); 
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });

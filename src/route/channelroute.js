@@ -1,8 +1,8 @@
 import express from "express";
-import getChannelChat from "../controller/channelcontroller.js";
+import getGroupMembers from "../controller/channelcontroller.js";
 
 const router = express.Router();
 
-router.get("/channel/:channelName", getChannelChat);
+router.get("/member/:channelName/", getGroupMembers);
 
 export default router;

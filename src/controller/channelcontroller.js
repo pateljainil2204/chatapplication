@@ -1,20 +1,45 @@
-import Channel from "../model/channelmodel.js";
+import Createchannel from "../model/createchannelmodel.js";
+import User from "../model/usermodel.js";
 
-const getGroupMembers = async (req, res) => {
+// 🔍 Search a specific user in a specific channel
+const searchChannelMembers = async (req, res) => {
   try {
-    const { channelName } = req.params;
+    const { channelName, username } = req.params;
 
-    const channel = await Channel.findOne({ channel: channelName })
-      .populate("members", "username -_id"); // only username field
+    // Find the channel
+    const channel = await Createchannel.findOne({ channel: channelName }).populate(
+      "members",
+      "username"
+    );
 
     if (!channel) {
       return res.status(404).json({
         success: false,
-        message: "Channel not found",
+        message: `Channel '${channelName}' not found`,
       });
     }
 
-    const members = channel.members.map((user) => user.username);
+    // If username param provided, search for that user in members
+    if (username) {
+      const isMember = channel.members.some(
+        (member) => member.username.toLowerCase() === username.toLowerCase()
+      );
+
+      if (!isMember) {
+        return res.status(404).json({
+          success: false,
+          message: `${username} is not a member of '${channelName}'`,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `${username} is a member of '${channelName}'`,
+      });
+    }
+
+    // If username not provided → return all members
+    const members = channel.members.map((m) => m.username);
 
     res.status(200).json({
       success: true,
@@ -22,8 +47,11 @@ const getGroupMembers = async (req, res) => {
       members,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-export default getGroupMembers;
+export default searchChannelMembers;

@@ -1,4 +1,4 @@
-import Channel from "../model/channelmodel.js";
+import Createchannel from "../model/createchannelmodel.js";
 
 async function handlejoinchannel(ws, users, parsed) {
   if (parsed.event !== "joinChannel") return;
@@ -17,26 +17,23 @@ async function handlejoinchannel(ws, users, parsed) {
   }
 
   try {
-    //  Check if the channel exists in the database
-    const channel = await Channel.findOne({ channel: channelName });
+    const channel = await Createchannel.findOne({ channel: channelName });
 
     if (!channel) {
       ws.send(
         JSON.stringify({
           event: "error",
-          data: `Channel '${channelName}' does not exist`,
+          data: `Channel '${channelName}' does not exist. Please create it first.`,
         })
       );
       return;
     }
 
-    // Add user to the channel (if not already in)
     if (!channel.members.includes(user._id)) {
       channel.members.push(user._id);
       await channel.save();
     }
 
-    // Update user’s current channel in memory
     user.channel = channelName;
     users.set(ws, user);
 
@@ -50,7 +47,9 @@ async function handlejoinchannel(ws, users, parsed) {
     console.log(`${user.username} joined channel ${channelName}`);
   } catch (err) {
     console.error("Join channel error:", err.message);
-    ws.send(JSON.stringify({ event: "error", data: "Failed to join channel" }));
+    ws.send(
+      JSON.stringify({ event: "error", data: "Failed to join channel" })
+    );
   }
 }
 

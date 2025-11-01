@@ -1,4 +1,6 @@
-function handleprivatemessage(ws, wss, users, parsed) {
+import PrivateMessage from "../model/privatemessagemodel.js";
+
+async function handleprivatemessage(ws, wss, users, parsed) {
   if (parsed.event !== "sendPrivateMessage") return;
 
   const fromUser = users.get(ws);
@@ -24,6 +26,18 @@ function handleprivatemessage(ws, wss, users, parsed) {
       );
       ws.send(JSON.stringify({ event: "ack", data: `Private message sent to ${toUsername}` }));
     }
+  }
+
+  try {
+    const newPrivateMessage = new PrivateMessage({
+      sender: fromUser.id,          
+      receiverUsername: toUsername, 
+      message: message,
+    });
+
+    await newPrivateMessage.save();
+  } catch (err) {
+    console.error("DB Save Error:", err);
   }
 
   if (!targetFound) {

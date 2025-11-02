@@ -1,5 +1,5 @@
-import PrivateMessage from "../model/privatemessagemodel.js";
-import User from "../model/usermodel.js";
+import PrivateMessage from "./privatemessagemodel.js";
+import User from "../user/usermodel.js";
 
 const getPrivateChat = async (req, res) => {
   try {

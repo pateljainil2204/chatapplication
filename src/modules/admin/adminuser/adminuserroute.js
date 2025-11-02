@@ -1,6 +1,6 @@
 import express from "express";
-import getAllUsersForAdmin  from "../controller/adminusercontroller.js";
-import verifyAdmin from "../middleware/adminauth.js";
+import getAllUsersForAdmin  from "../adminuser/adminusercontroller.js";
+import verifyAdmin from "../../../middleware/adminauth.js"
 
 const router = express.Router();
 

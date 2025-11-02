@@ -1,5 +1,5 @@
-import Createchannel from "../model/createchannelmodel.js";
-import User from "../model/usermodel.js";
+import Createchannel from "./createchannelmodel.js";
+import User from "../../user/usermodel.js";
 
 // Create a new channel using the registered username
 const createchannel = async (req, res) => {

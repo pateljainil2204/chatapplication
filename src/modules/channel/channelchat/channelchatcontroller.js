@@ -1,4 +1,4 @@
-import Message from "../model/channelchatmodel.js";
+import Message from "./channelchatmodel.js";
 
 const getChannelChat = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 import express from "express";
-import searchChannelMembers from "../controller/channelcontroller.js"
+import searchChannelMembers from "./channelcontroller.js"
 
 const router = express.Router();
 

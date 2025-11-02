@@ -1,7 +1,7 @@
-import Createchannel from "../model/createchannelmodel.js";
-import User from "../model/usermodel.js";
+import Createchannel from "../createchannel/createchannelmodel.js";
+import User from "../../user/usermodel.js"
 
-// 🔍 Search a specific user in a specific channel
+// Search a specific user in a specific channel
 const searchChannelMembers = async (req, res) => {
   try {
     const { channelName, username } = req.params;

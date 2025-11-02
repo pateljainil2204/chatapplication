@@ -1,5 +1,5 @@
 import express from "express";
-import getChannelChat from "../controller/channelchatcontroller.js";
+import getChannelChat from "./channelchatcontroller.js";
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
 import express from "express";
-import getPrivateChat from "../controller/privatemessagecontroller.js";
+import getPrivateChat from "./privatemessagecontroller.js";
 
 const router = express.Router();
 

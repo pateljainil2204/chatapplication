@@ -1,11 +1,11 @@
 import express from "express";
-import userRoutes from "./userroute.js";
-import messageRoutes from "./channelchatroute.js";
-import privateRoutes from "./privatemessageroute.js";
-import adminloginRoutes from "./adminloginroute.js";
-import adminuserRoutes from "./adminuserroute.js";
-import createchannelRoute from "./createchannelroute.js";
-import channelmemberRoute from "./channelmemberroute.js";
+import userRoutes from "../modules/user/userroute.js";
+import messageRoutes from "../modules/channel/channelchat/channelchatroute.js";
+import privateRoutes from "../modules/privatemessage/privatemessageroute.js";
+import adminloginRoutes from "../modules/admin/adminlogin/adminloginroute.js";
+import adminuserRoutes from "../modules/admin/adminuser/adminuserroute.js";
+import createchannelRoute from "../modules/channel/createchannel/createchannelroute.js";
+import channelmemberRoute from "../modules/channel/channelsearch/channelmemberroute.js";
 
 const router = express.Router();
 

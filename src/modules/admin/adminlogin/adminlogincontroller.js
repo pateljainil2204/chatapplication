@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import Admin from "../adminmodel";
+import Admin from "../adminmodel.js";
 
 // Register admin
 const registerAdmin = async (req, res) => {

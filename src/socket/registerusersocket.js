@@ -1,4 +1,4 @@
-import User from "../model/usermodel.js";
+import User from "../modules/user/usermodel.js";
 
 async function handleusersocket(ws, users, parsed) {
   if (parsed.event !== "register") return;

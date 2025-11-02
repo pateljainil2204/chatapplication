@@ -2,9 +2,9 @@ import { WebSocketServer } from "ws";
 import handleprivatemessage from "./privatemessagesocket.js";
 import handlejoinchannel from "./joinchannelsocket.js";
 import handlegroupmessage from "./groupmessagesocket.js";
-import handleusersocket from "./registeruser.js";
-import User from "../model/usermodel.js";
-import Createchannel from "../model/createchannelmodel.js";
+import handleusersocket from "./registerusersocket.js";
+import User from "../modules/user/usermodel.js";
+import Createchannel from "../modules/channel/createchannel/createchannelmodel.js";
 
 function initializesocket(server) {
   const wss = new WebSocketServer({ server });

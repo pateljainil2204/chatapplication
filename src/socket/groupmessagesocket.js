@@ -1,4 +1,4 @@
-import Message from "../model/channelchatmodel.js";
+import Message from "../modules/channel/channelchat/channelchatmodel.js";
 
 async function handlegroupmessage(ws, wss, users, messages, parsed) {
   if (parsed.event !== "sendMessage") return;

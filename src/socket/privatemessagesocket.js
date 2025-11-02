@@ -1,4 +1,4 @@
-import PrivateMessage from "../model/privatemessagemodel.js";
+import PrivateMessage from "../modules/privatemessage/privatemessagemodel.js";
 
 async function handleprivatemessage(ws, wss, users, parsed) {
   if (parsed.event !== "sendPrivateMessage") return;

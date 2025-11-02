@@ -1,4 +1,4 @@
-import Createchannel from "../model/createchannelmodel.js";
+import Createchannel from "../modules/channel/createchannel/createchannelmodel.js";
 
 async function handlejoinchannel(ws, users, parsed) {
   if (parsed.event !== "joinChannel") return;

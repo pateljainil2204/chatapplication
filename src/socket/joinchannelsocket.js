@@ -29,11 +29,31 @@ async function handlejoinchannel(ws, users, parsed) {
       return;
     }
 
-    if (!channel.members.includes(user._id)) {
-      channel.members.push(user._id);
-      await channel.save();
+    //  Check if already joined in DB
+    const alreadyMember = channel.members.some(
+      (memberId) => memberId.toString() === user._id.toString()
+    );
+
+    //  If already a member and active, just restore
+    if (alreadyMember && user.channel === channelName) {
+      ws.send(
+        JSON.stringify({
+          event: "info",
+          data: `You are already in channel '${channelName}'.`,
+        })
+      );
+      console.log(`${user.username} is already in channel ${channelName}`);
+      return;
     }
 
+    //  Add only if not already in DB
+    if (!alreadyMember) {
+      channel.members.push(user._id);
+      await channel.save();
+      console.log(`${user.username} added to channel '${channelName}' in DB`);
+    }
+
+    //  Update local socket session
     user.channel = channelName;
     users.set(ws, user);
 

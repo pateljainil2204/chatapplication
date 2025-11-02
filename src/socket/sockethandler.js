@@ -4,49 +4,79 @@ import handlejoinchannel from "./joinchannelsocket.js";
 import handlegroupmessage from "./groupmessagesocket.js";
 import handleusersocket from "./registeruser.js";
 import User from "../model/usermodel.js";
+import Createchannel from "../model/createchannelmodel.js";
 
 function initializesocket(server) {
   const wss = new WebSocketServer({ server });
   const users = new Map();
   let messages = [];
 
-  wss.on("connection", async (ws, req ) => {
+  wss.on("connection", async (ws, req) => {
     console.log("Client connected");
     ws.send(JSON.stringify({ event: "chatHistory", data: messages }));
 
-    // user restore using user id 
-     const url = new URL(req.url, `http://${req.headers.host}`);
+    const url = new URL(req.url, `http://${req.headers.host}`);
     const userId = url.searchParams.get("userId");
 
     if (userId) {
       try {
         const user = await User.findById(userId);
+
         if (user) {
-          users.set(ws, { id: user._id, username: user.username, channel: null });
+          const userChannels = await Createchannel.find({ members: user._id });
+
+          let activeChannel = null;
+          if (userChannels.length > 0) {
+            activeChannel = userChannels[userChannels.length - 1].channel;
+            console.log(`Restoring ${user.username} in channel '${activeChannel}'`);
+          }
+
+          users.set(ws, {
+            _id: user._id,
+            username: user.username,
+            channel: activeChannel,
+          });
+
+          ws.send(
+            JSON.stringify({
+              event: "restoreSuccess",
+              data: {
+                userId,
+                username: user.username,
+                activeChannel,
+                joinedChannels: userChannels.map((ch) => ch.channel),
+              },
+            })
+          );
+
           console.log(`Auto-restored user: ${user.username}`);
-          ws.send(JSON.stringify({ event: "restoreSuccess", data: { userId, username: user.username } }));
         } else {
           ws.send(JSON.stringify({ event: "error", data: "User not found" }));
         }
       } catch (err) {
         console.error("Restore failed:", err);
+        ws.send(
+          JSON.stringify({ event: "error", data: "Failed to restore user session" })
+        );
       }
-    };
+    }
 
     ws.on("message", (msg) => {
       let parsed;
       try {
         parsed = JSON.parse(msg.toString());
       } catch {
-        parsed = { event: "sendMessage", data: { message: msg.toString().trim() } };
+        parsed = {
+          event: "sendMessage",
+          data: { message: msg.toString().trim() },
+        };
       }
 
       console.log("Received:", parsed);
 
-      // pass parsed message to each handler
       handleusersocket(ws, users, parsed);
       handlejoinchannel(ws, users, parsed);
-      handlegroupmessage(ws, wss, users, messages, parsed); 
+      handlegroupmessage(ws, wss, users, messages, parsed);
       handleprivatemessage(ws, wss, users, parsed);
     });
 

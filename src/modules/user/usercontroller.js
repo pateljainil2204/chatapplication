@@ -27,11 +27,11 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+//  Get all online users 
 const onlineUsers = async (req, res) => {
   try {
-    const usersList = getOnlineUsers(); 
-    const usernames = usersList.map((u) => u.username); 
-
+    const usersList = getOnlineUsers();
+    const usernames = usersList.map((u) => u.username);
     res.json({
       count: usernames.length,
       users: usernames,
@@ -41,4 +41,25 @@ const onlineUsers = async (req, res) => {
   }
 };
 
-export { getAllUsers, registerUser, onlineUsers };
+//  Get online users in a specific channel
+const onlineusersinchannel = async (req, res) => {
+  try {
+    const { channel } = req.params;
+    if (!channel)
+      return res.status(400).json({ error: "Channel name is required" });
+
+    const usersList = getOnlineUsers();
+    const filtered = usersList.filter((u) => u.channel === channel);
+    const usernames = filtered.map((u) => u.username);
+
+    res.json({
+      channel,
+      count: usernames.length,
+      users: usernames,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch online users for channel" });
+  }
+};
+
+export { getAllUsers, registerUser, onlineUsers, onlineusersinchannel };

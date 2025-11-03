@@ -9,6 +9,7 @@ import channelmemberRoute from "../modules/channel/channelsearch/channelmemberro
 import removeChannelMemberRoute from "../modules/channel/removemember/removememberroute.js";
 import giveAuthorityRoute from "../modules/channel/authorityuser/authorityroute.js";
 import leaveChannelRoute from "../modules/channel/leavechannel/leavechannelroute.js";
+import searchChannelRoute from "../modules/channel/searchchannel/searchchannelroute.js";
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use("/admin/manage", adminuserRoutes);
 router.use("/channel", removeChannelMemberRoute);
 router.use("/channel", giveAuthorityRoute);
 router.use("/channel", leaveChannelRoute);
+router.use("/channel", searchChannelRoute);
 
 export default router;

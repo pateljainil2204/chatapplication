@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.use("/users", userRoutes);
 router.use("/channel", messageRoutes);
-router.use("/createchannel", createchannelRoute);
+router.use("/channel", createchannelRoute);
 router.use("/channelmember", channelmemberRoute);
 router.use("/private", privateRoutes);
 router.use("/admin", adminloginRoutes);

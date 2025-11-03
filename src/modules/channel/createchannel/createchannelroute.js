@@ -1,8 +1,9 @@
 import express from "express";
-import createchannel from "./createchannelcontroller.js";
+import { createchannel, deleteChannel} from "./createchannelcontroller.js";
 
 const router = express.Router();
 
-router.post("/", createchannel);
+router.post("/create", createchannel);
+router.delete("/delete", deleteChannel);
 
 export default router;

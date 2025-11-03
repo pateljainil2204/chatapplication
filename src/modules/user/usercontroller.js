@@ -1,5 +1,6 @@
 import User from "./usermodel.js";
-import { getOnlineUsers } from "../../socket/sockethandler.js"; 
+import Createchannel from "../channel/createchannel/createchannelmodel.js";
+import { getOnlineUsers } from "../../socket/sockethandler.js";
 
 // Register a new user
 const registerUser = async (req, res) => {
@@ -27,7 +28,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-//  Get all online users 
+// Get all online users
 const onlineUsers = async (req, res) => {
   try {
     const usersList = getOnlineUsers();
@@ -41,15 +42,30 @@ const onlineUsers = async (req, res) => {
   }
 };
 
-//  Get online users in a specific channel
+// Get online users in a specific (non-deleted) channel
 const onlineusersinchannel = async (req, res) => {
   try {
     const { channel } = req.params;
     if (!channel)
       return res.status(400).json({ error: "Channel name is required" });
 
+    // ✅ Check if channel exists and not deleted
+    const existingChannel = await Createchannel.findOne({
+      channel: channel,
+      isDeleted: false,
+    });
+
+    if (!existingChannel) {
+      return res.status(404).json({
+        success: false,
+        message: `Channel '${channel}' not found or has been deleted.`,
+      });
+    }
+
     const usersList = getOnlineUsers();
-    const filtered = usersList.filter((u) => u.channel === channel);
+    const filtered = usersList.filter(
+      (u) => u.channel && u.channel.toLowerCase() === channel.toLowerCase()
+    );
     const usernames = filtered.map((u) => u.username);
 
     res.json({

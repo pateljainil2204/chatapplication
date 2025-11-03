@@ -1,4 +1,5 @@
 import User from "./usermodel.js";
+import { getOnlineUsers } from "../../socket/sockethandler.js"; 
 
 // Register a new user
 const registerUser = async (req, res) => {
@@ -19,11 +20,25 @@ const registerUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("username -_id"); 
+    const users = await User.find().select("username -_id");
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-export { getAllUsers, registerUser };
+const onlineUsers = async (req, res) => {
+  try {
+    const usersList = getOnlineUsers(); 
+    const usernames = usersList.map((u) => u.username); 
+
+    res.json({
+      count: usernames.length,
+      users: usernames,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch online users" });
+  }
+};
+
+export { getAllUsers, registerUser, onlineUsers };

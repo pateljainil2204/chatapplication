@@ -6,10 +6,11 @@ import handleusersocket from "./registerusersocket.js";
 import User from "../modules/user/usermodel.js";
 import Createchannel from "../modules/channel/createchannel/createchannelmodel.js";
 
+const users = new Map(); // ⬅ move outside to persist globally
+let messages = [];
+
 function initializesocket(server) {
   const wss = new WebSocketServer({ server });
-  const users = new Map();
-  let messages = [];
 
   wss.on("connection", async (ws, req) => {
     console.log("Client connected");
@@ -21,10 +22,8 @@ function initializesocket(server) {
     if (userId) {
       try {
         const user = await User.findById(userId);
-
         if (user) {
           const userChannels = await Createchannel.find({ members: user._id });
-
           let activeChannel = null;
           if (userChannels.length > 0) {
             activeChannel = userChannels[userChannels.length - 1].channel;
@@ -90,4 +89,8 @@ function initializesocket(server) {
   });
 }
 
-export default initializesocket;
+function getOnlineUsers() {
+  return Array.from(users.values());
+}
+
+export { initializesocket , getOnlineUsers };

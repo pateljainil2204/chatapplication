@@ -4,7 +4,7 @@ import http from "http";
 import cors from "cors";
 import database from "./src/config/db.js";
 import expressconfig from "./server.js";
-import initializesocket from "./src/socket/sockethandler.js";
+import {initializesocket} from "./src/socket/sockethandler.js";
 
 dotenv.config();
 

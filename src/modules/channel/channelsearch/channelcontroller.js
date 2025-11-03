@@ -1,18 +1,17 @@
 import Createchannel from "../createchannel/createchannelmodel.js";
-import User from "../../user/usermodel.js";
 
 // Search a specific user in a specific channel
 const searchChannelMembers = async (req, res) => {
   try {
     const { channelName, username } = req.params;
 
-    // ✅ Find only active (non-deleted) channels
+    //  Find only active  channels
     const channel = await Createchannel.findOne({
       channel: channelName,
-      isDeleted: false, // will now work once field exists in schema
+      isDeleted: false, 
     }).populate("members", "username");
 
-    // 🚫 Channel not found or deleted
+    //  Channel not found or deleted
     if (!channel) {
       return res.status(404).json({
         success: false,
@@ -20,7 +19,7 @@ const searchChannelMembers = async (req, res) => {
       });
     }
 
-    // ✅ If username provided, check if they are a member
+    //  If username provided, check if they are a member
     if (username) {
       const isMember = channel.members.some(
         (member) => member.username.toLowerCase() === username.toLowerCase()
@@ -39,7 +38,7 @@ const searchChannelMembers = async (req, res) => {
       });
     }
 
-    // ✅ Otherwise, return all members
+    //  Otherwise, return all members
     const members = channel.members.map((m) => m.username);
 
     res.status(200).json({

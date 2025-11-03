@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true, trim: true },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

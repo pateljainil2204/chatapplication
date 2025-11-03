@@ -78,4 +78,48 @@ const onlineusersinchannel = async (req, res) => {
   }
 };
 
-export { getAllUsers, registerUser, onlineUsers, onlineusersinchannel };
+// Delete user by username (soft delete + delete their channels)
+const deleteUser = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    //  Find the user first
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    //  Soft delete user instead of removing from DB
+    user.isDeleted = true;
+    await user.save();
+
+    //  Soft delete all channels created by this user
+    const deletedChannels = await Createchannel.updateMany(
+      { createdBy: user._id, isDeleted: false },
+      { $set: { isDeleted: true } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `User '${username}' deleted successfully.`,
+      deletedChannels: deletedChannels.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export { getAllUsers, registerUser, onlineUsers, onlineusersinchannel, deleteUser };

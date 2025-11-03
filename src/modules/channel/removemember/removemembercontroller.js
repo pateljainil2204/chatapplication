@@ -4,10 +4,10 @@ import User from "../../user/usermodel.js";
 // Remove a member from a channel
 const removeMember = async (req, res) => {
   try {
-    const { channel } = req.params; // 👈 from URL (/removemember/general)
+    const { channel } = req.params; 
     const { requesterUsername, memberUsername } = req.body;
 
-    // ✅ Validate input
+    //  Validate input
     if (!channel || !requesterUsername || !memberUsername) {
       return res.status(400).json({
         success: false,
@@ -15,7 +15,7 @@ const removeMember = async (req, res) => {
       });
     }
 
-    // ✅ Find the channel (not soft deleted)
+    //  Find the channel (not soft deleted)
     const channelDoc = await Createchannel.findOne({ channel, isDeleted: false });
     if (!channelDoc) {
       return res.status(404).json({
@@ -24,7 +24,7 @@ const removeMember = async (req, res) => {
       });
     }
 
-    // ✅ Find requester and member users
+    //  Find requester and member users
     const requester = await User.findOne({ username: requesterUsername });
     const memberToRemove = await User.findOne({ username: memberUsername });
 
@@ -35,7 +35,7 @@ const removeMember = async (req, res) => {
       });
     }
 
-    // ✅ Check if requester is creator or authorized
+    //  Check if requester is creator or authorized
     const isAuthorized =
       channelDoc.createdBy.toString() === requester._id.toString() ||
       channelDoc.authorizedUsers?.some(
@@ -49,7 +49,7 @@ const removeMember = async (req, res) => {
       });
     }
 
-    // ✅ Check if member exists in channel
+    //  Check if member exists in channel
     if (!channelDoc.members.some((m) => m.toString() === memberToRemove._id.toString())) {
       return res.status(404).json({
         success: false,
@@ -57,7 +57,7 @@ const removeMember = async (req, res) => {
       });
     }
 
-    // ✅ Remove the member
+    //  Remove the member
     channelDoc.members = channelDoc.members.filter(
       (m) => m.toString() !== memberToRemove._id.toString()
     );

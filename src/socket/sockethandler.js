@@ -6,7 +6,7 @@ import handleusersocket from "./registerusersocket.js";
 import User from "../modules/user/usermodel.js";
 import Createchannel from "../modules/channel/createchannel/createchannelmodel.js";
 
-const users = new Map(); // ⬅ move outside to persist globally
+const users = new Map();
 let messages = [];
 
 function initializesocket(server) {

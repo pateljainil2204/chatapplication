@@ -11,6 +11,17 @@ async function handleusersocket(ws, users, parsed) {
 
   try {
     let user = await User.findOne({ username });
+
+    if (user && user.isDeleted) {
+      ws.send(
+        JSON.stringify({
+          event: "error",
+          data: `User '${username}' has been deleted or deactivated.`,
+        })
+      );
+      return;
+    }
+
     if (!user) {
       user = await User.create({ username });
     }

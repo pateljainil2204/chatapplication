@@ -1,4 +1,5 @@
 import Createchannel from "../modules/channel/createchannel/createchannelmodel.js";
+import User from "../modules/user/usermodel.js";
 
 async function handlejoinchannel(ws, users, parsed) {
   if (parsed.event !== "joinChannel") return;
@@ -11,30 +12,42 @@ async function handlejoinchannel(ws, users, parsed) {
     return;
   }
 
+  const activeUser = await User.findOne({ _id: user._id, isDeleted: false });
+  if (!activeUser) {
+    ws.send(
+      JSON.stringify({
+        event: "error",
+        data: "Your account has been deleted or deactivated.",
+      })
+    );
+    return;
+  }
+
   if (!channelName) {
     ws.send(JSON.stringify({ event: "error", data: "Channel name required" }));
     return;
   }
 
   try {
-    const channel = await Createchannel.findOne({ channel: channelName });
+    const channel = await Createchannel.findOne({
+      channel: channelName,
+      isDeleted: false,
+    });
 
     if (!channel) {
       ws.send(
         JSON.stringify({
           event: "error",
-          data: `Channel '${channelName}' does not exist. Please create it first.`,
+          data: `Channel '${channelName}' not found or has been deleted.`,
         })
       );
       return;
     }
 
-    //  Check if already joined in DB
     const alreadyMember = channel.members.some(
       (memberId) => memberId.toString() === user._id.toString()
     );
 
-    //  If already a member and active, just restore
     if (alreadyMember && user.channel === channelName) {
       ws.send(
         JSON.stringify({
@@ -46,14 +59,12 @@ async function handlejoinchannel(ws, users, parsed) {
       return;
     }
 
-    //  Add only if not already in DB
     if (!alreadyMember) {
       channel.members.push(user._id);
       await channel.save();
       console.log(`${user.username} added to channel '${channelName}' in DB`);
     }
 
-    //  Update local socket session
     user.channel = channelName;
     users.set(ws, user);
 

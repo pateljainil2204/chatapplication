@@ -1,10 +1,12 @@
 import Message from "./channelchatmodel.js";
 import Createchannel from "../createchannel/createchannelmodel.js";
+import User from "../../user/usermodel.js";
 
 const getChannelChat = async (req, res) => {
   try {
     const { channelName } = req.params;
 
+    // ✅ Check only active (non-deleted) channel
     const existingChannel = await Createchannel.findOne({
       channel: channelName,
       isDeleted: false,
@@ -17,16 +19,24 @@ const getChannelChat = async (req, res) => {
       });
     }
 
+    // ✅ Fetch messages only for this channel
     const messages = await Message.find({ channel: existingChannel._id })
       .select("message sender createdAt")
-      .populate("sender", "username -_id")
+      .populate({
+        path: "sender",
+        match: { isDeleted: false }, // ✅ skip deleted users
+        select: "username -_id",
+      })
       .sort({ createdAt: 1 });
+
+    // ✅ Filter out messages whose sender is deleted
+    const filteredMessages = messages.filter((msg) => msg.sender !== null);
 
     res.status(200).json({
       success: true,
-      count: messages.length,
-      messages: messages.map((msg) => ({
-        sender: msg.sender?.username || "Unknown User",
+      count: filteredMessages.length,
+      messages: filteredMessages.map((msg) => ({
+        sender: msg.sender?.username || "Deleted User",
         message: msg.message,
       })),
     });

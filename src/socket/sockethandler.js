@@ -22,40 +22,56 @@ function initializesocket(server) {
     if (userId) {
       try {
         const user = await User.findById(userId);
-        if (user) {
-          const userChannels = await Createchannel.find({ members: user._id });
-          let activeChannel = null;
-          if (userChannels.length > 0) {
-            activeChannel = userChannels[userChannels.length - 1].channel;
-            console.log(`Restoring ${user.username} in channel '${activeChannel}'`);
-          }
 
-          users.set(ws, {
-            _id: user._id,
-            username: user.username,
-            channel: activeChannel,
-          });
-
+        if (!user || user.isDeleted) {
           ws.send(
             JSON.stringify({
-              event: "restoreSuccess",
-              data: {
-                userId,
-                username: user.username,
-                activeChannel,
-                joinedChannels: userChannels.map((ch) => ch.channel),
-              },
+              event: "error",
+              data: "User not found or has been deleted.",
             })
           );
-
-          console.log(`Auto-restored user: ${user.username}`);
-        } else {
-          ws.send(JSON.stringify({ event: "error", data: "User not found" }));
+          return;
         }
+
+        const userChannels = await Createchannel.find({
+          members: user._id,
+          isDeleted: false,
+        });
+
+        let activeChannel = null;
+        if (userChannels.length > 0) {
+          activeChannel = userChannels[userChannels.length - 1].channel;
+          console.log(
+            `Restoring ${user.username} in channel '${activeChannel}'`
+          );
+        }
+
+        users.set(ws, {
+          _id: user._id,
+          username: user.username,
+          channel: activeChannel,
+        });
+
+        ws.send(
+          JSON.stringify({
+            event: "restoreSuccess",
+            data: {
+              userId,
+              username: user.username,
+              activeChannel,
+              joinedChannels: userChannels.map((ch) => ch.channel),
+            },
+          })
+        );
+
+        console.log(`Auto-restored user: ${user.username}`);
       } catch (err) {
         console.error("Restore failed:", err);
         ws.send(
-          JSON.stringify({ event: "error", data: "Failed to restore user session" })
+          JSON.stringify({
+            event: "error",
+            data: "Failed to restore user session",
+          })
         );
       }
     }
@@ -93,4 +109,4 @@ function getOnlineUsers() {
   return Array.from(users.values());
 }
 
-export { initializesocket , getOnlineUsers };
+export { initializesocket, getOnlineUsers };

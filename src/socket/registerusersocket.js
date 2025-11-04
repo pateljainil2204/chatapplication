@@ -12,11 +12,12 @@ async function handleusersocket(ws, users, parsed) {
   try {
     let user = await User.findOne({ username });
 
+    // ⛔ Prevent deleted users from re-registering
     if (user && user.isDeleted) {
       ws.send(
         JSON.stringify({
           event: "error",
-          data: `User '${username}' has been deleted or deactivated.`,
+          data: `User '${username}' has been deleted and cannot log in.`,
         })
       );
       return;

@@ -8,12 +8,5 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre(/^find/, function (next) {
-  if (!this.getQuery().hasOwnProperty("isDeleted")) {
-    this.where({ isDeleted: false });
-  }
-  next();
-});
-
 const User = mongoose.model("User", userSchema);
 export default User;

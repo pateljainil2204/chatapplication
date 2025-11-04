@@ -8,7 +8,7 @@ const registerUser = async (req, res) => {
     const { username } = req.body;
     if (!username) return res.status(400).json({ error: "Username is required" });
 
-    const existing = await User.findOne({ username, isDeleted: false });
+    const existing = await User.findOne({ username });
     if (existing) return res.status(400).json({ error: "Username already exists" });
 
     const user = await User.create({ username });
@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ isDeleted: false }).select("username -_id");
+    const users = await User.find().select("username -_id");
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -32,16 +32,10 @@ const getAllUsers = async (req, res) => {
 const onlineUsers = async (req, res) => {
   try {
     const usersList = getOnlineUsers();
-    const validUsers = [];
-
-    for (const u of usersList) {
-      const exists = await User.findOne({ username: u.username, isDeleted: false });
-      if (exists) validUsers.push(u.username);
-    }
-
+    const usernames = usersList.map((u) => u.username);
     res.json({
-      count: validUsers.length,
-      users: validUsers,
+      count: usernames.length,
+      users: usernames,
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch online users" });
@@ -68,26 +62,22 @@ const onlineusersinchannel = async (req, res) => {
     }
 
     const usersList = getOnlineUsers();
-    const filtered = [];
-
-    for (const u of usersList) {
-      const exists = await User.findOne({ username: u.username, isDeleted: false });
-      if (exists && u.channel && u.channel.toLowerCase() === channel.toLowerCase()) {
-        filtered.push(u.username);
-      }
-    }
+    const filtered = usersList.filter(
+      (u) => u.channel && u.channel.toLowerCase() === channel.toLowerCase()
+    );
+    const usernames = filtered.map((u) => u.username);
 
     res.json({
       channel,
-      count: filtered.length,
-      users: filtered,
+      count: usernames.length,
+      users: usernames,
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch online users for channel" });
   }
 };
 
-// Delete user by username (soft delete)
+// 🧹 Hard delete user by username (completely remove from DB)
 const deleteUser = async (req, res) => {
   try {
     const { username } = req.params;
@@ -99,25 +89,24 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ username, isDeleted: false });
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found or already deleted",
+        message: "User not found",
       });
     }
 
-    user.isDeleted = true;
-    await user.save();
+    // 🧩 Delete all channels created by this user
+    const deletedChannels = await Createchannel.deleteMany({ createdBy: user._id });
 
-    await Createchannel.updateMany(
-      { createdBy: user._id, isDeleted: false },
-      { $set: { isDeleted: true } }
-    );
+    // 🧩 Permanently remove user
+    await User.deleteOne({ _id: user._id });
 
     res.status(200).json({
       success: true,
-      message: `User '${username}' deleted successfully.`,
+      message: `User '${username}' and all their channels deleted permanently.`,
+      deletedChannels: deletedChannels.deletedCount,
     });
   } catch (error) {
     res.status(500).json({

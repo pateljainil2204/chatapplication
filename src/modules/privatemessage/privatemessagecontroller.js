@@ -1,22 +1,41 @@
 import PrivateMessage from "./privatemessagemodel.js";
 import User from "../user/usermodel.js";
 
-const sendPrivateMessage = async (req, res) => {
+const getPrivateChat = async (req, res) => {
   try {
-    const { senderUsername, receiverUsername, text } = req.body;
+    const { user1, user2 } = req.params;
 
-    const sender = await User.findOne({ username: senderUsername, isDeleted: false });
-    const receiver = await User.findOne({ username: receiverUsername, isDeleted: false });
+    const u1 = await User.findOne({ username: user1 });
+    const u2 = await User.findOne({ username: user2 });
 
-    if (!sender || !receiver)
-      return res.status(404).json({ message: "Sender or receiver not found/deleted" });
+    if (!u1 || !u2) {
+      return res.status(404).json({ success: false, message: "One or both users not found" });
+    }
 
-    const message = await PrivateMessage.create({ sender: sender._id, receiver: receiver._id, text });
+    const messages = await PrivateMessage.find({
+      $or: [
+        { sender: u1._id, receiverUsername: user2 },
+        { sender: u2._id, receiverUsername: user1 },
+      ],
+    })
+      .select("message receiverUsername sender createdAt") 
+      .populate("sender", "username -_id") 
+      .sort({ createdAt: 1 });
 
-    res.status(201).json({ success: true, data: message });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const formattedMessages = messages.map((msg) => ({
+      sender: msg.sender.username,
+      receiver: msg.receiverUsername,
+      message: msg.message,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedMessages.length,
+      messages: formattedMessages,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-export default sendPrivateMessage;
+export default getPrivateChat;

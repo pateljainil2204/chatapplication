@@ -12,40 +12,40 @@ async function handlejoinchannel(ws, users, parsed) {
     return;
   }
 
-  const activeUser = await User.findOne({ _id: user._id, isDeleted: false });
-  if (!activeUser) {
-    ws.send(
-      JSON.stringify({
-        event: "error",
-        data: "Your account has been deleted or deactivated.",
-      })
-    );
-    return;
-  }
-
   if (!channelName) {
     ws.send(JSON.stringify({ event: "error", data: "Channel name required" }));
     return;
   }
 
   try {
-    const channel = await Createchannel.findOne({
-      channel: channelName,
-      isDeleted: false,
-    });
-
-    if (!channel) {
+    // ✅ Verify user is not deleted
+    const dbUser = await User.findById(user.id);
+    if (!dbUser || dbUser.isDeleted) {
       ws.send(
         JSON.stringify({
           event: "error",
-          data: `Channel '${channelName}' not found or has been deleted.`,
+          data: "User is deleted or inactive. Please contact admin.",
         })
       );
       return;
     }
 
+    // ✅ Find only non-deleted channel
+    const channel = await Createchannel.findOne({ channel: channelName, isDeleted: false });
+
+    if (!channel) {
+      ws.send(
+        JSON.stringify({
+          event: "error",
+          data: `Channel '${channelName}' does not exist or has been deleted. Please create it first.`,
+        })
+      );
+      return;
+    }
+
+    // Already a member
     const alreadyMember = channel.members.some(
-      (memberId) => memberId.toString() === user._id.toString()
+      (memberId) => memberId.toString() === user.id.toString()
     );
 
     if (alreadyMember && user.channel === channelName) {
@@ -60,7 +60,7 @@ async function handlejoinchannel(ws, users, parsed) {
     }
 
     if (!alreadyMember) {
-      channel.members.push(user._id);
+      channel.members.push(user.id);
       await channel.save();
       console.log(`${user.username} added to channel '${channelName}' in DB`);
     }
@@ -78,9 +78,7 @@ async function handlejoinchannel(ws, users, parsed) {
     console.log(`${user.username} joined channel ${channelName}`);
   } catch (err) {
     console.error("Join channel error:", err.message);
-    ws.send(
-      JSON.stringify({ event: "error", data: "Failed to join channel" })
-    );
+    ws.send(JSON.stringify({ event: "error", data: "Failed to join channel" }));
   }
 }
 

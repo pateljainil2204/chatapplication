@@ -24,55 +24,35 @@ function initializesocket(server) {
         const user = await User.findById(userId);
 
         if (!user || user.isDeleted) {
-          ws.send(
-            JSON.stringify({
-              event: "error",
-              data: "User not found or has been deleted.",
-            })
-          );
+          ws.send(JSON.stringify({ event: "error", data: "User not found or deleted" }));
+          ws.close();
           return;
         }
 
-        const userChannels = await Createchannel.find({
-          members: user._id,
-          isDeleted: false,
-        });
-
+        const userChannels = await Createchannel.find({ members: user._id, isDeleted: false });
         let activeChannel = null;
+
         if (userChannels.length > 0) {
           activeChannel = userChannels[userChannels.length - 1].channel;
-          console.log(
-            `Restoring ${user.username} in channel '${activeChannel}'`
-          );
+          console.log(`Restoring ${user.username} in channel '${activeChannel}'`);
         }
 
-        users.set(ws, {
-          _id: user._id,
-          username: user.username,
-          channel: activeChannel,
-        });
+        users.set(ws, { id: user._id, username: user.username, channel: activeChannel });
 
-        ws.send(
-          JSON.stringify({
-            event: "restoreSuccess",
-            data: {
-              userId,
-              username: user.username,
-              activeChannel,
-              joinedChannels: userChannels.map((ch) => ch.channel),
-            },
-          })
-        );
+        ws.send(JSON.stringify({
+          event: "restoreSuccess",
+          data: {
+            userId,
+            username: user.username,
+            activeChannel,
+            joinedChannels: userChannels.map((ch) => ch.channel),
+          },
+        }));
 
         console.log(`Auto-restored user: ${user.username}`);
       } catch (err) {
         console.error("Restore failed:", err);
-        ws.send(
-          JSON.stringify({
-            event: "error",
-            data: "Failed to restore user session",
-          })
-        );
+        ws.send(JSON.stringify({ event: "error", data: "Failed to restore user session" }));
       }
     }
 
@@ -81,13 +61,8 @@ function initializesocket(server) {
       try {
         parsed = JSON.parse(msg.toString());
       } catch {
-        parsed = {
-          event: "sendMessage",
-          data: { message: msg.toString().trim() },
-        };
+        parsed = { event: "sendMessage", data: { message: msg.toString().trim() } };
       }
-
-      console.log("Received:", parsed);
 
       handleusersocket(ws, users, parsed);
       handlejoinchannel(ws, users, parsed);
